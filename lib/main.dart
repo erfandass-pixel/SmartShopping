@@ -10,8 +10,6 @@ void main() {
 class EinkaufsApp extends StatefulWidget {
   const EinkaufsApp({super.key});
 
-  // Diese statische Methode erlaubt es Kind-Widgets (wie Settings),
-  // auf den State der App zuzugreifen und z.B. das Theme neu zu rendern.
   static _EinkaufsAppState? of(BuildContext context) => context.findAncestorStateOfType<_EinkaufsAppState>();
 
   @override
@@ -19,7 +17,6 @@ class EinkaufsApp extends StatefulWidget {
 }
 
 class _EinkaufsAppState extends State<EinkaufsApp> {
-  // Eine Hilfsmethode, um das MaterialApp neu zu bauen (für Dark Mode Wechsel).
   void rebuildAll() {
     setState(() {});
   }
@@ -27,13 +24,13 @@ class _EinkaufsAppState extends State<EinkaufsApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Figma EinkaufsApp',
+      title: 'MVP 1 EinkaufsApp',
       debugShowCheckedModeBanner: false,
-      themeMode: AppState.settings.darkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: AppState.darkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC), // slate-50
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC), 
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue, brightness: Brightness.dark),
@@ -45,7 +42,7 @@ class _EinkaufsAppState extends State<EinkaufsApp> {
 }
 
 // ==========================================
-// MODELS & GLOBALER STATE (Mock Data)
+// MODELS & GLOBALER STATE
 // ==========================================
 
 class ListItem {
@@ -53,9 +50,8 @@ class ListItem {
   String name;
   String category;
   bool checked;
-  double? price;
 
-  ListItem({required this.id, required this.name, required this.category, this.checked = false, this.price});
+  ListItem({required this.id, required this.name, required this.category, this.checked = false});
 }
 
 class ShoppingList {
@@ -65,65 +61,35 @@ class ShoppingList {
   DateTime? completedAt;
   bool isCompleted;
   List<ListItem> items;
-  double? estimatedBudget;
 
   ShoppingList({
     required this.id, required this.title, required this.createdAt, 
-    this.completedAt, this.isCompleted = false, required this.items, this.estimatedBudget
+    this.completedAt, this.isCompleted = false, required this.items
   });
 }
 
-class AppSettings {
-  String currency;
-  bool smartCategorization;
-  bool darkMode;
-
-  AppSettings({required this.currency, required this.smartCategorization, required this.darkMode});
-}
-
-// Nutzen eine statische Klasse als simplen globalen State für den Prototyp.
-// Erspart uns "Prop-Drilling" (Daten durch jeden Screen durchreichen) und externe Libraries wie Provider.
-// Für einen kleinen Uni-Prototyp ist das extrem leicht zu erklären und ausreichend.
+// Globaler State für das einfache MVP
 class AppState {
-  static AppSettings settings = AppSettings(currency: '€', smartCategorization: true, darkMode: false);
+  static bool darkMode = false;
 
-  static List<ShoppingList> lists = [
-    ShoppingList(
-      id: '1', title: 'Wocheneinkauf',
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      isCompleted: false, estimatedBudget: 50.0,
-      items: [
-        ListItem(id: 'i1', name: 'Milch 1L', category: 'Milchprodukte', checked: false, price: 1.2),
-        ListItem(id: 'i2', name: 'Brot', category: 'Backwaren', checked: true, price: 2.5),
-        ListItem(id: 'i3', name: 'Äpfel', category: 'Obst & Gemüse', checked: false, price: 3.0),
-      ],
-    ),
-    ShoppingList(
-      id: '2', title: 'Party Snacks',
-      createdAt: DateTime.now().subtract(const Duration(days: 10)),
-      completedAt: DateTime.now().subtract(const Duration(days: 9)),
-      isCompleted: true, estimatedBudget: 30.0,
-      items: [
-        ListItem(id: 'i4', name: 'Chips', category: 'Snacks', checked: true, price: 2.0),
-        ListItem(id: 'i5', name: 'Cola', category: 'Getränke', checked: true, price: 1.5),
-        ListItem(id: 'i6', name: 'Bier', category: 'Getränke', checked: true, price: 10.0),
-      ],
-    ),
-  ];
+  // In-Memory-Speicherung
+  static List<ShoppingList> lists = [];
+
+  static const categoriesMap = {
+    'Obst & Gemüse': ['apfel', 'banane', 'tomate', 'gurke', 'salat'],
+    'Milchprodukte': ['milch', 'käse', 'joghurt', 'quark', 'butter'],
+    'Fleisch & Fisch': ['hähnchen', 'rind', 'schwein', 'fisch', 'wurst'],
+    'Backwaren': ['brot', 'brötchen', 'toast', 'kuchen'],
+    'Getränke': ['wasser', 'saft', 'cola', 'bier', 'wein'],
+    'Snacks': ['chips', 'schokolade', 'gummibärchen', 'kekse'],
+    'Haushalt': ['seife', 'waschmittel', 'papier'],
+  };
+
+  static List<String> get allCategories => [...categoriesMap.keys, 'Sonstiges'];
 
   static String categorizeItem(String name) {
     final lowerName = name.toLowerCase();
-    const categories = {
-      'Obst & Gemüse': ['apfel', 'banane', 'tomate', 'gurke', 'salat', 'kartoffel', 'zwiebel'],
-      'Milchprodukte': ['milch', 'käse', 'joghurt', 'quark', 'butter', 'sahne'],
-      'Fleisch & Fisch': ['hähnchen', 'rind', 'schwein', 'fisch', 'wurst', 'lachs'],
-      'Backwaren': ['brot', 'brötchen', 'toast', 'kuchen', 'croissant'],
-      'Getränke': ['wasser', 'saft', 'cola', 'bier', 'wein', 'kaffee'],
-      'Snacks': ['chips', 'schokolade', 'gummibärchen', 'kekse', 'nüsse'],
-      'Haushalt': ['klopapier', 'waschmittel', 'spüli', 'müllbeutel', 'seife'],
-    };
-
-    for (var entry in categories.entries) {
+    for (var entry in categoriesMap.entries) {
       if (entry.value.any((keyword) => lowerName.contains(keyword))) {
         return entry.key;
       }
@@ -145,7 +111,6 @@ class AppState {
   }
 }
 
-// Hilfsfunktion zur simplen Formatierung, damit wir kein externes "intl" Paket brauchen.
 String formatDate(DateTime date) {
   return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
 }
@@ -173,7 +138,6 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
-      // NavigationBar ist die Material 3 Variante für Tabs am unteren Rand.
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (idx) {
@@ -182,7 +146,7 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.shopping_cart_outlined), selectedIcon: Icon(Icons.shopping_cart), label: 'Listen'),
+          NavigationDestination(icon: Icon(Icons.list_alt), selectedIcon: Icon(Icons.list), label: 'Listen'),
           NavigationDestination(icon: Icon(Icons.history_outlined), selectedIcon: Icon(Icons.history), label: 'Verlauf'),
           NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Analyse'),
           NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Settings'),
@@ -193,7 +157,7 @@ class _MainScreenState extends State<MainScreen> {
 }
 
 // ==========================================
-// DASHBOARD
+// DASHBOARD (MVP: Liste anlegen, löschen, Name ändern)
 // ==========================================
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -203,15 +167,16 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  void _showAddDialog() {
-    String newTitle = '';
+  void _showListDialog({ShoppingList? listToEdit}) {
+    String newTitle = listToEdit?.title ?? '';
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Neue Liste erstellen'),
+          title: Text(listToEdit == null ? 'Neue Liste' : 'Liste umbenennen'),
           content: TextField(
             autofocus: true,
+            controller: TextEditingController(text: newTitle),
             decoration: const InputDecoration(hintText: 'Z.B. Wocheneinkauf', border: OutlineInputBorder()),
             onChanged: (val) => newTitle = val,
           ),
@@ -221,22 +186,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: () {
                 if (newTitle.trim().isNotEmpty) {
                   setState(() {
-                    AppState.lists.insert(0, ShoppingList(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      title: newTitle.trim(),
-                      createdAt: DateTime.now(),
-                      items: [],
-                    ));
+                    if (listToEdit == null) {
+                      AppState.lists.insert(0, ShoppingList(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        title: newTitle.trim(),
+                        createdAt: DateTime.now(),
+                        items: [],
+                      ));
+                    } else {
+                      listToEdit.title = newTitle.trim();
+                    }
                   });
                   Navigator.pop(ctx);
                 }
               },
-              child: const Text('Erstellen'),
+              child: const Text('Speichern'),
             ),
           ],
         );
       }
     );
+  }
+
+  void _deleteList(ShoppingList list) {
+    setState(() {
+      AppState.lists.remove(list);
+    });
   }
 
   @override
@@ -245,17 +220,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Meine Listen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28)),
-            Text('Was brauchst du heute?', style: TextStyle(fontSize: 14, color: Colors.grey)),
-          ],
-        ),
-        toolbarHeight: 90,
+        title: const Text('Aktive Listen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
       ),
       body: activeLists.isEmpty
-        ? const Center(child: Text('Keine aktiven Listen vorhanden.', style: TextStyle(color: Colors.grey)))
+        ? const Center(child: Text('Keine aktiven Listen vorhanden.'))
         : ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: activeLists.length,
@@ -263,68 +231,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final list = activeLists[index];
               final total = list.items.length;
               final checked = list.items.where((i) => i.checked).length;
-              final progress = total == 0 ? 0.0 : checked / total;
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  side: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                ),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
                   onTap: () async {
-                    // Wir warten, bis der User aus der Detailansicht zurückkommt
-                    // und rufen dann setState auf, um z.B. den neuen Fortschrittsbalken anzuzeigen.
-                    await Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => ListDetailScreen(listId: list.id)
-                    ));
+                    await Navigator.push(context, MaterialPageRoute(builder: (_) => ListDetailScreen(listId: list.id)));
                     setState((){});
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(list.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                            const CircleAvatar(
-                              radius: 16,
-                              backgroundColor: Color(0xFFF1F5F9), // slate-100
-                              child: Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+                            Text(list.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 20, color: Colors.blue),
+                                  onPressed: () => _showListDialog(listToEdit: list),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                                  onPressed: () => _deleteList(list),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.shopping_bag_outlined, size: 16, color: Colors.grey),
-                            const SizedBox(width: 4),
-                            Text(formatDate(list.createdAt), style: const TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('$checked von $total Artikeln', style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                            Text('${(progress * 100).round()}%', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 8,
-                            backgroundColor: Colors.grey.shade200,
-                            // Wir nutzen die Primary Color des Themes für den Balken
-                            color: Theme.of(context).colorScheme.primary, 
-                          ),
-                        ),
+                        Text('$checked / $total Artikel erledigt', style: const TextStyle(color: Colors.grey)),
                       ],
                     ),
                   ),
@@ -333,7 +272,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
           ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddDialog,
+        onPressed: () => _showListDialog(),
         child: const Icon(Icons.add),
       ),
     );
@@ -341,7 +280,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 // ==========================================
-// LIST DETAIL
+// LIST DETAIL (MVP: Artikel verwalten)
 // ==========================================
 class ListDetailScreen extends StatefulWidget {
   final String listId;
@@ -364,7 +303,7 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
       list.items.add(ListItem(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
-        category: AppState.settings.smartCategorization ? AppState.categorizeItem(name) : 'Sonstiges',
+        category: AppState.categorizeItem(name),
       ));
     });
     _textController.clear();
@@ -374,19 +313,12 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
     setState(() {
       list.isCompleted = true;
       list.completedAt = DateTime.now();
+      Navigator.pop(context); // Gehe zurück bei Abschluss
     });
-    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Gruppiere Artikel nach Kategorien, um sie blockweise anzuzeigen.
-    final Map<String, List<ListItem>> grouped = {};
-    for (var item in list.items) {
-      grouped.putIfAbsent(item.category, () => []).add(item);
-    }
-    final categories = grouped.keys.toList()..sort();
-
     return Scaffold(
       appBar: AppBar(
         title: Text(list.title),
@@ -400,103 +332,66 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
       ),
       body: Column(
         children: [
-          if (!list.isCompleted)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: _textController,
-                decoration: InputDecoration(
-                  hintText: 'Was möchtest du kaufen?',
-                  filled: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                  suffixIcon: Container(
-                    margin: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, borderRadius: BorderRadius.circular(12)),
-                    child: IconButton(
-                      icon: const Icon(Icons.add, color: Colors.white),
-                      onPressed: _addItem,
-                    ),
-                  ),
+          // Auch bei vergangenen Listen lassen wir die Bearbeitung zu (MVP Anforderung: "vergangene Listen bearbeiten")
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _textController,
+              decoration: InputDecoration(
+                hintText: 'Neuen Artikel hinzufügen...',
+                filled: true,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: _addItem,
                 ),
-                onSubmitted: (_) => _addItem(),
               ),
+              onSubmitted: (_) => _addItem(),
             ),
+          ),
           Expanded(
-            // ListView.builder wird verwendet, damit auch Listen mit 
-            // hunderten Einträgen absolut flüssig bleiben.
+            // Nutze ListView.builder für Performance
             child: list.items.isEmpty
-                ? const Center(child: Text('Diese Liste ist noch leer.', style: TextStyle(color: Colors.grey)))
+                ? const Center(child: Text('Diese Liste ist noch leer.'))
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: categories.length,
+                    itemCount: list.items.length,
                     itemBuilder: (context, index) {
-                      final category = categories[index];
-                      final items = grouped[category]!;
-                      
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Chip(
-                              label: Text(category, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppState.getCategoryColor(category))),
-                              backgroundColor: AppState.getCategoryColor(category).withOpacity(0.1),
-                              side: BorderSide.none,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      final item = list.items[index];
+                      return Dismissible(
+                        key: Key(item.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        onDismissed: (_) {
+                          setState(() {
+                            list.items.remove(item);
+                          });
+                        },
+                        child: ListTile(
+                          leading: InkWell(
+                            onTap: () => setState(() => item.checked = !item.checked),
+                            child: Icon(
+                              item.checked ? Icons.check_circle : Icons.radio_button_unchecked,
+                              color: item.checked ? Colors.lightBlue : Colors.grey,
+                              size: 28,
                             ),
                           ),
-                          Card(
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              side: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                            ),
-                            child: Column(
-                              children: items.map((item) {
-                                return Dismissible(
-                                  key: Key(item.id),
-                                  direction: DismissDirection.endToStart,
-                                  background: Container(
-                                    decoration: BoxDecoration(color: Colors.red.shade400, borderRadius: BorderRadius.circular(24)),
-                                    alignment: Alignment.centerRight,
-                                    padding: const EdgeInsets.only(right: 20),
-                                    child: const Icon(Icons.delete, color: Colors.white),
-                                  ),
-                                  onDismissed: (_) {
-                                    setState(() {
-                                      list.items.remove(item);
-                                    });
-                                  },
-                                  child: ListTile(
-                                    leading: InkWell(
-                                      onTap: () => setState(() => item.checked = !item.checked),
-                                      child: Icon(
-                                        item.checked ? Icons.check_circle : Icons.radio_button_unchecked,
-                                        color: item.checked ? Colors.lightBlue : Colors.grey.shade400,
-                                        size: 28,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      item.name,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        decoration: item.checked ? TextDecoration.lineThrough : null,
-                                        color: item.checked ? Colors.grey : null,
-                                      ),
-                                    ),
-                                    // IconButton taucht in der React-App beim Hovern auf, 
-                                    // wir zeigen ihn der Einfachheit halber immer als Alternative zum Swipe.
-                                    trailing: IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                                      onPressed: () => setState(() => list.items.remove(item)),
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                          title: Text(
+                            item.name,
+                            style: TextStyle(
+                              decoration: item.checked ? TextDecoration.lineThrough : null,
+                              color: item.checked ? Colors.grey : null,
                             ),
                           ),
-                          const SizedBox(height: 16),
-                        ],
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => setState(() => list.items.remove(item)),
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -508,11 +403,16 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
 }
 
 // ==========================================
-// HISTORY
+// HISTORY (MVP: Vergangene Listen ansehen / bearbeiten / löschen)
 // ==========================================
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final history = AppState.lists.where((l) => l.isCompleted).toList();
@@ -520,17 +420,10 @@ class HistoryScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Verlauf', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28)),
-            Text('Deine vergangenen Einkäufe.', style: TextStyle(fontSize: 14, color: Colors.grey)),
-          ],
-        ),
-        toolbarHeight: 90,
+        title: const Text('Verlauf', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
       ),
       body: history.isEmpty
-          ? const Center(child: Text('Kein Verlauf vorhanden', style: TextStyle(color: Colors.grey)))
+          ? const Center(child: Text('Kein Verlauf vorhanden'))
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: history.length,
@@ -538,31 +431,23 @@ class HistoryScreen extends StatelessWidget {
                 final list = history[index];
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    side: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                  ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
-                    leading: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
-                      child: const Icon(Icons.shopping_bag, color: Colors.green),
-                    ),
+                    leading: const Icon(Icons.history, color: Colors.green, size: 32),
                     title: Text(list.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    subtitle: Text(list.completedAt != null ? formatDate(list.completedAt!) : 'Unbekannt', style: const TextStyle(color: Colors.grey)),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('${list.items.length} Artikel', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        if (list.estimatedBudget != null)
-                          Text('ca. ${list.estimatedBudget}€', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                      ],
+                    subtitle: Text(list.completedAt != null ? formatDate(list.completedAt!) : 'Unbekannt'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          AppState.lists.remove(list);
+                        });
+                      },
                     ),
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => ListDetailScreen(listId: list.id)));
+                    onTap: () async {
+                      // Durch das Öffnen im ListDetailScreen kann die Liste bearbeitet werden
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => ListDetailScreen(listId: list.id)));
+                      setState((){});
                     },
                   ),
                 );
@@ -573,7 +458,7 @@ class HistoryScreen extends StatelessWidget {
 }
 
 // ==========================================
-// ANALYTICS
+// ANALYTICS (MVP: Anzahl Artikel, Listen, Kategorien-Balken)
 // ==========================================
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});
@@ -587,26 +472,23 @@ class AnalyticsScreen extends StatelessWidget {
     int totalListsCompleted = AppState.lists.where((l) => l.isCompleted).length;
 
     Map<String, int> counts = {};
+    for (var cat in AppState.allCategories) {
+      counts[cat] = 0;
+    }
     for (var list in AppState.lists) {
       for (var item in list.items) {
-        counts[item.category] = (counts[item.category] ?? 0) + 1;
+        if(item.checked) {
+          counts[item.category] = (counts[item.category] ?? 0) + 1;
+        }
       }
     }
     var sortedCategories = counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-    var topCategories = sortedCategories.take(5).toList();
-
+    var topCategories = sortedCategories; // Alle anzeigen
     int maxCount = topCategories.isNotEmpty ? topCategories.first.value : 1;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Analysen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28)),
-            Text('Dein Einkaufsverhalten im Blick.', style: TextStyle(fontSize: 14, color: Colors.grey)),
-          ],
-        ),
-        toolbarHeight: 90,
+        title: const Text('Analysen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -615,21 +497,14 @@ class AnalyticsScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.grey.withOpacity(0.2))),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: Colors.lightBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.trending_up, color: Colors.lightBlue),
-                        ),
+                        const Icon(Icons.shopping_cart, size: 40, color: Colors.blue),
                         const SizedBox(height: 16),
                         Text('$totalItemsBought', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                        const Text('Gekaufte Artikel', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        const Text('Artikel gekauft'),
                       ],
                     ),
                   ),
@@ -638,21 +513,14 @@ class AnalyticsScreen extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.grey.withOpacity(0.2))),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.pie_chart, color: Colors.indigo),
-                        ),
+                        const Icon(Icons.check_circle, size: 40, color: Colors.green),
                         const SizedBox(height: 16),
                         Text('$totalListsCompleted', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                        const Text('Listen erledigt', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        const Text('Listen erledigt'),
                       ],
                     ),
                   ),
@@ -660,23 +528,19 @@ class AnalyticsScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.grey.withOpacity(0.2))),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Top Kategorien', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  const Text('Nach Anzahl der Artikel', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                  const Text('Alle Kategorien', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   const SizedBox(height: 32),
                   if (topCategories.isEmpty)
-                    const Text('Noch keine Daten vorhanden.', style: TextStyle(color: Colors.grey))
+                    const Text('Noch keine Daten vorhanden.')
                   else
-                    // Wir bauen das Diagramm mit einfachen Standard-Widgets (Row, Column, Container), 
-                    // um keine externen Chart-Libraries einbinden zu müssen. Das spart Setup-Zeit für den Prototyp.
+                    // Simples Säulendiagramm komplett aus Flutter Standard-Widgets
                     SizedBox(
                       height: 200,
                       child: Row(
@@ -687,14 +551,14 @@ class AnalyticsScreen extends StatelessWidget {
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Text('${entry.value}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                              Text('${entry.value}', style: const TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 8),
                               Container(
-                                width: 32,
+                                width: 40,
                                 height: 130 * heightFactor,
                                 decoration: BoxDecoration(
                                   color: AppState.getCategoryColor(entry.key),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -702,7 +566,7 @@ class AnalyticsScreen extends StatelessWidget {
                                 width: 60,
                                 child: Text(
                                   entry.key, 
-                                  style: const TextStyle(fontSize: 10, color: Colors.grey), 
+                                  style: const TextStyle(fontSize: 10), 
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -724,7 +588,7 @@ class AnalyticsScreen extends StatelessWidget {
 }
 
 // ==========================================
-// SETTINGS
+// SETTINGS (MVP: Nur Darkmode)
 // ==========================================
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -738,105 +602,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Einstellungen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28)),
-            Text('Passe die App an deine Bedürfnisse an.', style: TextStyle(fontSize: 14, color: Colors.grey)),
-          ],
-        ),
-        toolbarHeight: 90,
+        title: const Text('Einstellungen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 16, bottom: 8),
-            child: Text('APP EINSTELLUNGEN', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12, letterSpacing: 1.2)),
-          ),
           Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.grey.withOpacity(0.2))),
-            child: Column(
-              children: [
-                SwitchListTile(
-                  secondary: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.amber.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.auto_awesome, color: Colors.amber),
-                  ),
-                  title: const Text('Smartes Einsortieren', style: TextStyle(fontWeight: FontWeight.w500)),
-                  value: AppState.settings.smartCategorization,
-                  onChanged: (val) {
-                    setState(() => AppState.settings.smartCategorization = val);
-                  },
-                ),
-                Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
-                SwitchListTile(
-                  secondary: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.dark_mode, color: Colors.indigo),
-                  ),
-                  title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.w500)),
-                  value: AppState.settings.darkMode,
-                  onChanged: (val) {
-                    setState(() => AppState.settings.darkMode = val);
-                    // Wir rufen eine Funktion auf dem Root-Widget auf, um das Theme global neu zu laden.
-                    // Das ist ein einfacher Trick für State Management ohne komplexe Architektur.
-                    EinkaufsApp.of(context)?.rebuildAll();
-                  },
-                ),
-                Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.euro, color: Colors.green),
-                  ),
-                  title: const Text('Währung', style: TextStyle(fontWeight: FontWeight.w500)),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                    child: Text(AppState.settings.currency, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 24),
-          const Padding(
-            padding: EdgeInsets.only(left: 16, bottom: 8),
-            child: Text('ACCOUNT & SYNC', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12, letterSpacing: 1.2)),
-          ),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.grey.withOpacity(0.2))),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.lightBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.cloud, color: Colors.lightBlue),
-                  ),
-                  title: const Text('Cloud Sync', style: TextStyle(fontWeight: FontWeight.w500)),
-                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  onTap: () {},
-                ),
-                Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.notifications, color: Colors.red),
-                  ),
-                  title: const Text('Benachrichtigungen', style: TextStyle(fontWeight: FontWeight.w500)),
-                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  onTap: () {},
-                ),
-              ],
+            child: SwitchListTile(
+              title: const Text('Dark Mode'),
+              secondary: const Icon(Icons.dark_mode),
+              value: AppState.darkMode,
+              onChanged: (val) {
+                setState(() => AppState.darkMode = val);
+                EinkaufsApp.of(context)?.rebuildAll();
+              },
             ),
           ),
         ],
